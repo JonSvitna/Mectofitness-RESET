@@ -50,6 +50,27 @@ function openCalendly() {
 
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ── Scroll fade-in (IntersectionObserver) ─────────────────────────────────
+  if ("IntersectionObserver" in window) {
+    var fadeObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll(".fade-in").forEach(function (el) {
+      fadeObserver.observe(el);
+    });
+  } else {
+    // Fallback: show all immediately if IntersectionObserver not supported
+    document.querySelectorAll(".fade-in").forEach(function (el) {
+      el.classList.add("visible");
+    });
+  }
+
   // ── Smooth scroll for nav / CTA anchor links ──────────────────────────────
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener("click", function (e) {
