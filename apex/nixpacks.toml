@@ -1,9 +1,0 @@
-# Auto-loaded by Nixpacks when present at the repository root.
-# This keeps deployment deterministic for static hosting environments.
-providers = ["python"]
-
-[phases.setup]
-nixPkgs = ["python311"]
-
-[start]
-cmd = "python3 -m http.server --bind 0.0.0.0 ${PORT:-3000}"
