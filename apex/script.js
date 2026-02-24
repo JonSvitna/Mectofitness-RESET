@@ -1,9 +1,52 @@
 // ─────────────────────────────────────────────
 // PLACEHOLDER URL CONSTANTS — replace before going live
 // ─────────────────────────────────────────────
-const ASSESSMENT_PAYMENT_URL = "https://your-payment-link-here.com/assessment-100";
-const SCHEDULING_URL = "https://your-scheduling-link-here.com/executive-assessment-call";
+
+// TODO: Replace with your actual Calendly scheduling page URL
+// Example: "https://calendly.com/your-name/executive-assessment"
+const CALENDLY_URL = "TODO_ADD_CALENDLY_LINK";
+
+// TODO: Payment integration — replace with actual provider link when decided.
+// Options: Stripe Payment Link, PayPal, custom checkout, etc.
+const ASSESSMENT_PAYMENT_URL = "TODO_ADD_PAYMENT_LINK";
+
 // ─────────────────────────────────────────────
+
+// ── Internal Tracking Utility ─────────────────────────────────────────────
+// Logs events to console and queues in localStorage. No external analytics.
+const TRACKING_QUEUE_KEY = "mectofitness_apex_events";
+
+function track(eventName, data) {
+  var event = {
+    event: eventName,
+    data: data || {},
+    timestamp: new Date().toISOString(),
+  };
+  console.log("[APEX Track]", eventName, event.data);
+  try {
+    var queue = JSON.parse(localStorage.getItem(TRACKING_QUEUE_KEY) || "[]");
+    queue.push(event);
+    if (queue.length > 50) queue = queue.slice(-50); // cap queue size
+    localStorage.setItem(TRACKING_QUEUE_KEY, JSON.stringify(queue));
+  } catch (e) { /* localStorage unavailable */ }
+}
+
+// ── Application localStorage key ──────────────────────────────────────────
+const APP_STORAGE_KEY = "mectofitness_apex_application";
+
+// ── Calendly popup helper ──────────────────────────────────────────────────
+function openCalendly() {
+  if (CALENDLY_URL === "TODO_ADD_CALENDLY_LINK") {
+    console.warn("[APEX] Calendly URL not configured. Set the CALENDLY_URL constant in script.js.");
+    return;
+  }
+  if (typeof Calendly !== "undefined" && Calendly.initPopupWidget) {
+    Calendly.initPopupWidget({ url: CALENDLY_URL });
+  } else {
+    // Fallback: open in new tab if Calendly script has not yet loaded
+    window.open(CALENDLY_URL, "_blank", "noopener,noreferrer");
+  }
+}
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -18,19 +61,66 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ── Assessment payment button ──────────────────────────────────────────────
-  document.querySelectorAll(".js-assessment-btn").forEach(function (btn) {
+  // ── CTA tracking — Apply buttons ──────────────────────────────────────────
+  document.querySelectorAll('a[href="#admission"].btn-primary').forEach(function (btn) {
     btn.addEventListener("click", function () {
-      window.open(ASSESSMENT_PAYMENT_URL, "_blank", "noopener,noreferrer");
+      track("CTA_CLICK_APPLY", { label: btn.textContent.trim() });
     });
   });
 
-  // ── Scheduling button ─────────────────────────────────────────────────────
-  document.querySelectorAll(".js-schedule-btn").forEach(function (btn) {
+  // ── CTA tracking — Book / Begin Assessment buttons ────────────────────────
+  document.querySelectorAll('a[href="#admission"].btn-secondary').forEach(function (btn) {
     btn.addEventListener("click", function () {
-      window.open(SCHEDULING_URL, "_blank", "noopener,noreferrer");
+      track("CTA_CLICK_BOOK", { label: btn.textContent.trim() });
     });
   });
+
+  // ── Payment button (TODO — provider not yet decided) ──────────────────────
+  document.querySelectorAll(".js-assessment-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      // TODO: Implement payment flow once provider is decided.
+      // Options:
+      //   - Stripe Payment Link: window.open(ASSESSMENT_PAYMENT_URL, "_blank", "noopener,noreferrer");
+      //   - PayPal button embed
+      //   - Custom checkout page redirect
+      console.log("[APEX] Payment button clicked — integration pending.");
+      track("CTA_CLICK_PAYMENT", { label: btn.textContent.trim() });
+    });
+  });
+
+  // ── Calendly booking buttons ───────────────────────────────────────────────
+  document.querySelectorAll(".js-calendly-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      track("CALENDLY_POPUP_OPENED", { source: btn.dataset.source || "admission" });
+      openCalendly();
+    });
+  });
+
+  // ── Restore form from localStorage (edit application) ─────────────────────
+  var editLink = document.getElementById("form-edit-link");
+  var savedApp = null;
+  try {
+    savedApp = JSON.parse(localStorage.getItem(APP_STORAGE_KEY));
+  } catch (e) { /* ignore parse errors */ }
+
+  if (savedApp && editLink) {
+    editLink.style.display = "inline";
+    editLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      var form = document.getElementById("apex-application-form");
+      var success = document.getElementById("form-success");
+      if (form) {
+        populateForm(savedApp);
+        form.style.display = "flex";
+      }
+      if (success) {
+        success.style.display = "none";
+      }
+      if (form) {
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
 
   // ── Application form ──────────────────────────────────────────────────────
   var form = document.getElementById("apex-application-form");
@@ -61,18 +151,26 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!valid) return;
 
     var payload = {
-      fullName:      fullName,
-      email:         email,
-      phone:         phone || null,
-      currentWeight: currentWt,
-      goalWeight:    goalWt,
+      fullName:        fullName,
+      email:           email,
+      phone:           phone || null,
+      currentWeight:   currentWt,
+      goalWeight:      goalWt,
       biggestObstacle: obstacle,
       willingToFollow: willing,
-      submittedAt:   new Date().toISOString(),
+      submittedAt:     new Date().toISOString(),
     };
 
-    // ── Console log (dev / integration placeholder) ──────────────────────
+    // ── Console log ──────────────────────────────────────────────────────────
     console.log("[Mectofitness APEX] Application submission payload:", payload);
+
+    // ── Persist to localStorage ───────────────────────────────────────────
+    try {
+      localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) { /* localStorage unavailable */ }
+
+    // ── Track event ───────────────────────────────────────────────────────
+    track("APPLICATION_SUBMIT_SUCCESS", { email: email });
 
     // TODO: Integrate with backend API — choose one:
     // Option A — Klaviyo:
@@ -97,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
     //   });
     // ─────────────────────────────────────────────────────────────────────
 
-    showSuccess();
+    showSuccessAndHighlight();
   });
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -126,9 +224,40 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".input-error").forEach(function (el) { el.classList.remove("input-error"); });
   }
 
-  function showSuccess() {
+  function showSuccessAndHighlight() {
     form.style.display = "none";
     var success = document.getElementById("form-success");
     if (success) success.style.display = "block";
+
+    // Auto-scroll to admission section so user sees the booking area
+    var admissionSection = document.getElementById("admission");
+    if (admissionSection) {
+      admissionSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Visually highlight the booking area for 4 seconds
+    var bookingArea = document.getElementById("booking-area");
+    if (bookingArea) {
+      bookingArea.classList.add("booking-highlight");
+      setTimeout(function () {
+        bookingArea.classList.remove("booking-highlight");
+      }, 4000);
+    }
+  }
+
+  function populateForm(data) {
+    var fields = {
+      "field-name":           data.fullName || "",
+      "field-email":          data.email || "",
+      "field-phone":          data.phone || "",
+      "field-current-weight": data.currentWeight || "",
+      "field-goal-weight":    data.goalWeight || "",
+      "field-obstacle":       data.biggestObstacle || "",
+      "field-willing":        data.willingToFollow || "",
+    };
+    Object.keys(fields).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = fields[id];
+    });
   }
 });

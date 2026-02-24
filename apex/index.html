@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <!-- Calendly embed CSS — only loaded on this page -->
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -126,35 +128,30 @@
 
       <ul class="standard-list">
         <li>
-          <div></div>
           <div>
             <span class="standard-item-title">Consistency Is the Method</span>
             <span class="standard-item-body">Isolated effort produces isolated results. Repeated, deliberate execution across 90 days is the mechanism — not willpower, not inspiration.</span>
           </div>
         </li>
         <li>
-          <div></div>
           <div>
             <span class="standard-item-title">Data Over Feeling</span>
             <span class="standard-item-body">Progress is not assessed by how you feel. It is measured, documented, and evaluated against defined benchmarks on a fixed schedule.</span>
           </div>
         </li>
         <li>
-          <div></div>
           <div>
             <span class="standard-item-title">Protocol Precedes Preference</span>
             <span class="standard-item-body">Personal preferences are acknowledged at intake. After that, the protocol governs. Adjustments are data-driven, not comfort-driven.</span>
           </div>
         </li>
         <li>
-          <div></div>
           <div>
             <span class="standard-item-title">Accountability Is Structural</span>
             <span class="standard-item-body">Accountability is not optional encouragement — it is built into the architecture of the program. Non-compliance is visible and addressed.</span>
           </div>
         </li>
         <li>
-          <div></div>
           <div>
             <span class="standard-item-title">Completion Is the Outcome</span>
             <span class="standard-item-body">The program ends when 90 days are completed — not when progress slows, not when discomfort rises. Completion is the standard.</span>
@@ -236,30 +233,31 @@
             <li class="pricing-step">
               <span class="step-badge">1</span>
               <div class="step-content">
-                <span class="step-title">Submit Your Application</span>
+                <span class="step-title">Apply for Admission</span>
                 <p>Complete the form on this page. No payment required at this step. Applications are reviewed within 48 hours.</p>
               </div>
             </li>
             <li class="pricing-step">
               <span class="step-badge">2</span>
               <div class="step-content">
-                <span class="step-title">Pay the Executive Assessment</span>
-                <p>A $100 commitment fee secures your Executive Performance Assessment call. This is non-refundable and demonstrates seriousness of intent.</p>
-                <span class="step-price">$100 — Non-Refundable</span>
+                <span class="step-title">Book Executive Assessment (Calendly)</span>
+                <p>Schedule your 30-minute Executive Performance Assessment call. This call determines fit and defines your entry protocol.</p>
               </div>
             </li>
             <li class="pricing-step">
               <span class="step-badge">3</span>
               <div class="step-content">
-                <span class="step-title">Book Your Assessment Call</span>
-                <p>After payment, schedule your 30-minute Executive Performance Assessment. This call determines fit and defines your entry protocol.</p>
+                <span class="step-title">Complete Assessment</span>
+                <p>Attend your scheduled call. Assessment fee commitment applies at this stage.</p>
+                <!-- TODO: Payment integration — add provider + flow here -->
+                <span class="step-price step-price-todo">Assessment Payment: Coming Next</span>
               </div>
             </li>
             <li class="pricing-step">
               <span class="step-badge">4</span>
               <div class="step-content">
                 <span class="step-title">Acceptance &amp; Enrollment</span>
-                <p>If accepted, the $100 assessment fee is credited toward your total enrollment. Remaining balance upon acceptance:</p>
+                <p>If accepted, the assessment fee is credited toward your total enrollment. Remaining balance upon acceptance:</p>
                 <span class="step-price">$250 remaining ($350 total program)</span>
               </div>
             </li>
@@ -271,9 +269,10 @@
           </div>
           <p class="admission-disclaimer">* Results vary based on adherence and individual factors including starting point, physiology, and lifestyle. This program does not make medical claims.</p>
 
-          <div class="btn-group" style="margin-top:2rem;">
-            <button class="btn btn-primary js-assessment-btn" type="button">Proceed to Executive Assessment ($100)</button>
-            <button class="btn btn-ghost js-schedule-btn" type="button">Book Your Executive Assessment Call</button>
+          <div id="booking-area" class="btn-group" style="margin-top:2rem;">
+            <!-- TODO: Payment integration — replace this placeholder button with your chosen provider -->
+            <button class="btn btn-todo js-assessment-btn" type="button" disabled>Assessment Payment: Coming Next</button>
+            <button class="btn btn-primary js-calendly-btn" type="button" data-source="admission">Book Executive Assessment Call</button>
           </div>
         </div>
 
@@ -330,7 +329,11 @@
 
           <div id="form-success" role="status" aria-live="polite">
             <h3>Application Received.</h3>
-            <p>Your application has been logged. You will hear from us within 48 hours regarding next steps. If accepted, you will be directed to complete the Executive Assessment payment to lock in your call.</p>
+            <p>Your application has been logged. Next step: book your Executive Assessment using the button below.</p>
+            <button class="btn btn-primary js-calendly-btn" type="button" data-source="form-success" style="margin-top:1rem;">Book Executive Assessment Call</button>
+            <p style="margin-top:1rem;font-size:0.78rem;">
+              <a href="#" id="form-edit-link" style="display:none;color:var(--accent);">Edit application</a>
+            </p>
           </div>
         </div>
 
@@ -348,5 +351,7 @@
   </footer>
 
   <script src="script.js"></script>
+  <!-- Calendly popup widget script — only loaded on this page -->
+  <script src="https://assets.calendly.com/assets/external/widget.js" defer></script>
 </body>
 </html>
